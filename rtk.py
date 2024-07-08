@@ -122,39 +122,6 @@ def listen_to_drones(connection):
                 socketio.emit('drone_info', drone_info)
             drone_infos.clear()
 
-### This is the original code
-# def read_and_send_rtk_data(connection, rtk_connection):
-#     sequence_id = 0
-#     msglen = 100
-#     while True:
-#         data = rtk_connection.read(1024)
-#         for i in range(0, len(data), msglen):
-#             chunk = data[i:i + msglen]
-#             start_time = time.time()
-#             print(f'Received {len(chunk)}, GOOD!')
-#             msgs = math.ceil(len(chunk) / msglen)
-#             for msg in range(msgs):
-#                 flags = 0
-#                 if msgs > 1:
-#                     flags = 1
-#                 flags |= (msg & 0x3) << 1
-#                 flags |= sequence_id << 3
-#                 amount = min(len(chunk) - msg * msglen, msglen)
-#                 datachunk = chunk[msg * msglen : msg * msglen + amount]
-#                 connection.mav.gps_rtcm_data_send(
-#                     flags,
-#                     len(datachunk),
-#                     bytearray(datachunk.ljust(180, b'\0'))
-#                 )
-#             if msgs < 4 and len(chunk) % msglen == 0 and len(chunk) > msglen:
-#                 flags = 1 | (msgs & 0x3) << 1 | sequence_id << 3
-#                 connection.mav.gps_rtcm_data_send(
-#                     flags,
-#                     0,
-#                     bytearray(b'\0' * 180)
-#                 )
-#             sequence_id = (sequence_id + 1) & 0x1f
-
 def read_and_send_rtk_data(connection, rtk_connection):
     sequence_id = 0
     buffer = b''
@@ -184,10 +151,6 @@ def read_and_send_rtk_data(connection, rtk_connection):
             print(f"Received {len(chunk)}, GOOD!")
 
             msgs = math.ceil(len(chunk) / maxLoraRTKLen)
-            # if (len(chunk) % 180 == 0):
-            #     msgs = len(chunk) // 180
-            # else:
-            #     msgs = (len(chunk) // 180) + 1
             for a in range(msgs):
                 flags = 0
                 if msgs > 1:
@@ -196,7 +159,7 @@ def read_and_send_rtk_data(connection, rtk_connection):
                 flags |= (sequence_id & 0x1f) << 3
                 amount = min(len(chunk) - a * maxLoraRTKLen, maxLoraRTKLen)
                 datachunk = chunk[a * maxLoraRTKLen : a * maxLoraRTKLen + amount]
-                print(f"SENT datachunk in hex: {datachunk.hex()}")
+                # print(f"SENT datachunk in hex: {datachunk.hex()}")
                 connection.mav.gps_rtcm_data_send(
                     flags,
                     len(datachunk),

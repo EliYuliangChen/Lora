@@ -51,15 +51,7 @@ def process_folders(base_folder):
                             result = analyze_battery_data(file_path)
                             destination_folder = good_folder if result == 'good' else bad_folder
                             target_path = os.path.join(destination_folder, sub_folder)
-
-                            # # 如果目标路径已存在，重命名目标路径
-                            # if os.path.exists(target_path):
-                            #     base_name = target_path
-                            #     counter = 1
-                            #     while os.path.exists(target_path):
-                            #         target_path = f"{base_name}_{counter}"
-                            #         counter += 1
-
+                            
                             shutil.move(sub_folder_path, target_path)
 
                             if result == 'bad':
