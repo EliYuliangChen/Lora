@@ -63,7 +63,7 @@ testing_motors_lock = Lock()
 socketio = SocketIO(app)
 global_connection = None
 global_rtk_connection = None
-maxLoraRTKLen = 100
+maxLoraRTKLen = 180
 motor_test_duration = 10
 rtk_status = {'satellites_visible': 0, 'survey_in_progress': True, 'rtk_precision': None}
 logger = logging.getLogger('werkzeug')
@@ -73,11 +73,11 @@ def log(*args, sep=' ', to_file=True):
     line = sep.join(map(str, args))
     line = datetime.now().strftime('[%H:%M:%S]') + ': ' + line + '\n'
     line_unstyled = click.unstyle(line)
-    socketio.emit('log_message', {'data': line})
     if to_file:
         log_file.write(line_unstyled)
         log_file.flush()
     sys.stderr.write(line)
+    socketio.emit('log_message', {'data': line})
 
 class LogHandler(logging.Handler):
     def emit(self, record):
@@ -106,7 +106,7 @@ def listen_to_drones(connection):
     last_update_time = time.time()
     while True:
         try:
-            msg = connection.recv_match(type=['SYS_STATUS', 'GPS_RAW_INT', 'HEARTBEAT'], blocking=False)
+            msg = connection.recv_match(type=['SYS_STATUS', 'GPS_RAW_INT', 'HEARTBEAT'], blocking=True)
         except serial.serialutil.SerialException as e:
             print('Error when listening drones:', e)
             break
@@ -341,6 +341,7 @@ def set_com_port():
 
 @app.route('/set_rtk_port', methods=['POST'])
 def set_rtk_port():
+    log('Setting RTK port')
     global global_rtk_connection
     data = request.json
     rtk_com_port = data.get('rtk_com_port')
